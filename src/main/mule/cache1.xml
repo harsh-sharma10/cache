@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="eac235fc-c4cf-458b-8046-5e51d5c5572d" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="b1601c49-2e86-47fe-988f-91235f294543" >
+		<salesforce:basic-connection username="gaurav.patle@apisero.com" password="Apisero#123" securityToken="a5GIOBRAmDkHswoeVwGfCOAs" />
+	</salesforce:sfdc-config>
+	<ee:object-store-caching-strategy name="Caching_Strategy" doc:name="Caching Strategy" doc:id="00548e61-d7c9-4b3a-b53f-ea607261b8d6" keyGenerationExpression="#[vars.userId]" />
+	<flow name="cache1Flow" doc:id="b80fd8d4-0861-482f-bfcf-c67ffbacad78" >
+		<http:listener doc:name="Listener" doc:id="21ec5ada-ffc3-4fd0-9a56-2b758cee4fd1" config-ref="HTTP_Listener_config" path="/cache"/>
+		<set-variable value="#[payload.Id]" doc:name="Set Variable" doc:id="0e9addb0-bb3f-48c4-b15b-fc7929a70be8" variableName="userId"/>
+		<logger level="INFO" doc:name="Logger" doc:id="914e7a7d-24ba-462f-9ba6-299247c0bf7d" message="#[payload]"/>
+		<ee:cache doc:name="Cache" doc:id="12bb8918-cafa-4895-8915-71c996427b6a" >
+			<salesforce:query doc:name="Query" doc:id="b0c1f7fd-05a3-4ba5-8a19-c1decde8481e" config-ref="Salesforce_Config">
+			<salesforce:salesforce-query><![CDATA[Select Id from Case where Id= ':id']]></salesforce:salesforce-query>
+			<salesforce:parameters><![CDATA[#[{
+	id : payload.Id
+}]]]></salesforce:parameters>
+		</salesforce:query>
+			<logger level="INFO" doc:name="Logger" doc:id="1b5d1352-5a81-4ac0-96d8-dd4beca8c323" message="#[payload[0].Id]" />
+		</ee:cache>
+		<logger level="INFO" doc:name="Logger" doc:id="9cd32265-891c-4487-b622-10cd709c7eb7" message="Hi"/>
+	</flow>
+</mule>
